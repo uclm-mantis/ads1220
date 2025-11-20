@@ -257,6 +257,20 @@ void ADS1220_destroy(ADS1220_t* dev);
 esp_err_t ADS1220_read_data(ADS1220_t* dev, int32_t *data);
 
 /**
+ * @brief Performs a single-shot conversion and reads the result.
+ * 
+ * This function assumes the device is already configured in single-shot mode (cm=0).
+ * It sends a START command, waits for DRDY to go low (indicating data ready),
+ * and reads the conversion result.
+ * 
+ * @param dev Pointer to ADS1220 device instance
+ * @param[out] data Pointer to store the 24-bit result (sign-extended to 32-bit)
+ * @param timeout_ms Maximum time to wait for conversion in milliseconds
+ * @return esp_err_t ESP_OK on success, ESP_ERR_TIMEOUT if DRDY doesn't go low within timeout
+ */
+esp_err_t ADS1220_read_oneshot(ADS1220_t* dev, int32_t *data, uint32_t timeout_ms);
+
+/**
  * @brief Starts continuous data acquisition triggered by DRDY interrupt.
  * 
  * @param dev Pointer to ADS1220 device instance

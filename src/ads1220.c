@@ -155,6 +155,31 @@ esp_err_t ADS1220_read_data(ADS1220_t* dev, int32_t *data) {
     return ESP_OK;
 }
 
+esp_err_t ADS1220_read_oneshot(ADS1220_t* dev, int32_t *data, uint32_t timeout_ms) {
+    if (!dev || !data) return ESP_ERR_INVALID_ARG;
+    
+    // Send START command to trigger a single conversion
+    esp_err_t ret = ADS1220_start(dev);
+    if (ret != ESP_OK) return ret;
+    
+    // Wait for DRDY to go low (data ready) with timeout
+    uint32_t elapsed_us = 0;
+    uint32_t timeout_us = timeout_ms * 1000;
+    const uint32_t poll_interval_us = 100; // Poll every 100us
+    
+    while (!ads_data_ready(dev->drdy_pin)) {
+        if (elapsed_us >= timeout_us) {
+            return ESP_ERR_TIMEOUT;
+        }
+        esp_rom_delay_us(poll_interval_us);
+        elapsed_us += poll_interval_us;
+    }
+    
+    // Read the conversion result
+    *data = ads_read_raw_internal(dev->spi_dev);
+    return ESP_OK;
+}
+
 esp_err_t ADS1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *cfg) {
     if (!cfg) return ESP_ERR_INVALID_ARG;
     
