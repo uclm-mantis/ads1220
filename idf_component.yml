@@ -1,0 +1,12 @@
+version: "1.0.0"
+description: "Driver for Texas Instruments ADS1220 24-bit ADC"
+targets:
+  - esp32
+  - esp32c3
+  - esp32c6
+  - esp32s2
+  - esp32s3
+  - esp32h2
+  - esp32p4
+license: "MIT"
+url: "https://github.com/uclm-mantis/ads1220"
