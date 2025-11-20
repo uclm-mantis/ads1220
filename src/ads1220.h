@@ -313,44 +313,35 @@ esp_err_t ADS1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *c
  */
 esp_err_t ADS1220_write_config(ADS1220_t* dev, const ADS1220_Config_t *cfg);
 
-/**
- * @brief Macro to generate simple command functions.
- * @internal
- */
-#define ADS1220_CMD_FUNC(name, cmd) static inline esp_err_t ADS1220_##name(ADS1220_t* dev) { \
-    const ADS1220Command_t data = cmd; \
-    return spi_device_transmit(dev->spi_dev, &(spi_transaction_t){ .length = 8, .tx_buffer = &data }); }
 
 /**
  * @brief Resets the ADS1220 to default configuration.
  * @param dev Pointer to ADS1220 device instance
  * @return esp_err_t ESP_OK on success
  */
-ADS1220_CMD_FUNC(reset, ADS1220_RESET)
+esp_err_t ADS1220_reset(ADS1220_t* dev);
 
 /**
  * @brief Powers down the ADS1220 to save power.
  * @param dev Pointer to ADS1220 device instance
  * @return esp_err_t ESP_OK on success
  */
-ADS1220_CMD_FUNC(powerdown, ADS1220_POWERDOWN)
+esp_err_t ADS1220_powerdown(ADS1220_t* dev);
 
 /**
  * @brief Starts or restarts conversions.
  * @param dev Pointer to ADS1220 device instance
  * @return esp_err_t ESP_OK on success
  */
-ADS1220_CMD_FUNC(start, ADS1220_STARTSYNC)
+esp_err_t ADS1220_start(ADS1220_t* dev);
 
 /**
  * @brief Synchronizes conversions (same as start).
  * @param dev Pointer to ADS1220 device instance
  * @return esp_err_t ESP_OK on success
  */
-ADS1220_CMD_FUNC(sync, ADS1220_STARTSYNC)
+esp_err_t ADS1220_sync(ADS1220_t* dev);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
-
-

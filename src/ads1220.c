@@ -13,7 +13,7 @@ static const ADS1220_Config_t CFG_LOAD_CELL = {
     .gain = ADS1220_GAIN_128,
     .pga_bypass = 0,
     .dr = ADS1220_DR_TURBO_2000SPS,
-    .mode = ADS1220_MODE_TURBO,
+    .mode = ADS1220_OP_MODE_TURBO,
     .cm = 1,
     .ts = 0,
     .bcs = 0,
@@ -257,3 +257,16 @@ void ADS1220_stop_continuous(ADS1220_t* dev) {
     
     dev->callback = NULL;
 }
+
+/**
+ * @brief Macro to generate simple command functions.
+ * @internal
+ */
+#define ADS1220_CMD_FUNC(name, cmd) esp_err_t ADS1220_##name(ADS1220_t* dev) { \
+    const ADS1220Command_t data = cmd; \
+    return spi_device_transmit(dev->spi_dev, &(spi_transaction_t){ .length = 8, .tx_buffer = &data }); }
+
+ADS1220_CMD_FUNC(reset, ADS1220_RESET)
+ADS1220_CMD_FUNC(powerdown, ADS1220_POWERDOWN)
+ADS1220_CMD_FUNC(start, ADS1220_STARTSYNC)
+ADS1220_CMD_FUNC(sync, ADS1220_STARTSYNC)
