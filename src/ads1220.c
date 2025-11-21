@@ -197,6 +197,13 @@ esp_err_t ads1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *c
     return ESP_OK;
 }
 
+esp_err_t ads1220_set_preset_config(ADS1220_Preset_t preset) {
+    ADS1220_Config_t cfg;
+    esp_err_t ret = ads1220_get_preset_config(preset, &cfg);
+    if (ret != ESP_OK) return ret;
+    return ads1220_write_config(&cfg);
+}
+
 esp_err_t ads1220_read_config(ADS1220_t* dev, ADS1220_Config_t *out) {
     if (!dev || !out) return ESP_ERR_INVALID_ARG;
     

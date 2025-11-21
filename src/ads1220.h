@@ -305,6 +305,14 @@ esp_err_t ads1220_read_config(ADS1220_t* dev, ADS1220_Config_t *out);
 esp_err_t ads1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *cfg);
 
 /**
+ * @brief Sets a preconfigured profile for common use cases.
+ * 
+ * @param preset The preset profile to retrieve
+ * @return esp_err_t ESP_OK on success, ESP_ERR_INVALID_ARG if preset is invalid
+ */
+esp_err_t ads1220_set_preset_config(ADS1220_Preset_t preset);
+
+/**
  * @brief Writes all 4 configuration registers to the ADS1220.
  * 
  * @param dev Pointer to ADS1220 device instance
@@ -312,7 +320,6 @@ esp_err_t ads1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *c
  * @return esp_err_t ESP_OK on success, or SPI error code
  */
 esp_err_t ads1220_write_config(ADS1220_t* dev, const ADS1220_Config_t *cfg);
-
 
 /**
  * @brief Resets the ADS1220 to default configuration.
