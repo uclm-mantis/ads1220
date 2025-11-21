@@ -12,8 +12,8 @@ static const ADS1220_Config_t CFG_LOAD_CELL = {
     .mux = ADS1220_MUX_AIN0_AIN1,
     .gain = ADS1220_GAIN_128,
     .pga_bypass = 0,
-    .dr = ADS1220_DR_TURBO_2000SPS,
-    .mode = ADS1220_OP_MODE_TURBO,
+    .dr = ADS1220_DR_600SPS,
+    .mode = ADS1220_OP_MODE_NORMAL,
     .cm = 1,
     .ts = 0,
     .bcs = 0,
@@ -95,7 +95,7 @@ static void ads1220_driver_task(void *arg) {
     }
 }
 
-ADS1220_t* ADS1220_create(const ADS1220_init_config_t* config) {
+ADS1220_t* ads1220_create(const ADS1220_init_config_t* config) {
     if (!config) {
         ESP_LOGE(TAG, "Config is NULL");
         return NULL;
@@ -137,11 +137,11 @@ ADS1220_t* ADS1220_create(const ADS1220_init_config_t* config) {
     return dev;
 }
 
-void ADS1220_destroy(ADS1220_t* dev) {
+void ads1220_destroy(ADS1220_t* dev) {
     if (!dev) return;
     
     // Stop continuous mode if running
-    ADS1220_stop_continuous(dev);
+    ads1220_stop_continuous(dev);
     
     // Remove device from SPI bus
     spi_bus_remove_device(dev->spi_dev);
@@ -149,17 +149,17 @@ void ADS1220_destroy(ADS1220_t* dev) {
     free(dev);
 }
 
-esp_err_t ADS1220_read_data(ADS1220_t* dev, int32_t *data) {
+esp_err_t ads1220_read_data(ADS1220_t* dev, int32_t *data) {
     if (!dev || !data) return ESP_ERR_INVALID_ARG;
     *data = ads_read_raw_internal(dev->spi_dev);
     return ESP_OK;
 }
 
-esp_err_t ADS1220_read_oneshot(ADS1220_t* dev, int32_t *data, uint32_t timeout_ms) {
+esp_err_t ads1220_read_oneshot(ADS1220_t* dev, int32_t *data, uint32_t timeout_ms) {
     if (!dev || !data) return ESP_ERR_INVALID_ARG;
     
     // Send START command to trigger a single conversion
-    esp_err_t ret = ADS1220_start(dev);
+    esp_err_t ret = ads1220_start(dev);
     if (ret != ESP_OK) return ret;
     
     // Wait for DRDY to go low (data ready) with timeout
@@ -180,7 +180,7 @@ esp_err_t ADS1220_read_oneshot(ADS1220_t* dev, int32_t *data, uint32_t timeout_m
     return ESP_OK;
 }
 
-esp_err_t ADS1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *cfg) {
+esp_err_t ads1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *cfg) {
     if (!cfg) return ESP_ERR_INVALID_ARG;
     
     switch (preset) {
@@ -197,7 +197,7 @@ esp_err_t ADS1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *c
     return ESP_OK;
 }
 
-esp_err_t ADS1220_read_config(ADS1220_t* dev, ADS1220_Config_t *out) {
+esp_err_t ads1220_read_config(ADS1220_t* dev, ADS1220_Config_t *out) {
     if (!dev || !out) return ESP_ERR_INVALID_ARG;
     
     uint8_t cmd = ADS1220_RREG(ADS1220_REG0, 4).u8;
@@ -210,7 +210,7 @@ esp_err_t ADS1220_read_config(ADS1220_t* dev, ADS1220_Config_t *out) {
     return spi_device_transmit(dev->spi_dev, &t);
 }
 
-esp_err_t ADS1220_write_config(ADS1220_t* dev, const ADS1220_Config_t *cfg) {
+esp_err_t ads1220_write_config(ADS1220_t* dev, const ADS1220_Config_t *cfg) {
     if (!dev || !cfg) return ESP_ERR_INVALID_ARG;
     
     spi_transaction_t t = { 
@@ -223,7 +223,7 @@ esp_err_t ADS1220_write_config(ADS1220_t* dev, const ADS1220_Config_t *cfg) {
     return spi_device_transmit(dev->spi_dev, &t);
 }
 
-esp_err_t ADS1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback) {
+esp_err_t ads1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback) {
     if (!dev || !callback) return ESP_ERR_INVALID_ARG;
     
     dev->callback = callback;
@@ -240,13 +240,13 @@ esp_err_t ADS1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callb
     gpio_intr_enable(dev->drdy_pin);
 
     // Send START command
-    return ADS1220_start(dev);
+    return ads1220_start(dev);
 }
 
-void ADS1220_stop_continuous(ADS1220_t* dev) {
+void ads1220_stop_continuous(ADS1220_t* dev) {
     if (!dev) return;
     
-    ADS1220_powerdown(dev);
+    ads1220_powerdown(dev);
     gpio_intr_disable(dev->drdy_pin);
     gpio_isr_handler_remove(dev->drdy_pin);
     
@@ -262,7 +262,7 @@ void ADS1220_stop_continuous(ADS1220_t* dev) {
  * @brief Macro to generate simple command functions.
  * @internal
  */
-#define ADS1220_CMD_FUNC(name, cmd) esp_err_t ADS1220_##name(ADS1220_t* dev) { \
+#define ADS1220_CMD_FUNC(name, cmd) esp_err_t ads1220_##name(ADS1220_t* dev) { \
     const ADS1220Command_t data = cmd; \
     return spi_device_transmit(dev->spi_dev, &(spi_transaction_t){ .length = 8, .tx_buffer = &data }); }
 

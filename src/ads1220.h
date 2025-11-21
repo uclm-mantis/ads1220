@@ -238,14 +238,14 @@ typedef void (*ads1220_data_callback_t)(int32_t raw_data);
  * @param config Pointer to initialization configuration structure
  * @return ADS1220_t* Pointer to device instance, or NULL on failure
  */
-ADS1220_t* ADS1220_create(const ADS1220_init_config_t* config);
+ADS1220_t* ads1220_create(const ADS1220_init_config_t* config);
 
 /**
  * @brief Destroys an ADS1220 device instance and frees resources.
  * 
  * @param dev Pointer to device instance
  */
-void ADS1220_destroy(ADS1220_t* dev);
+void ads1220_destroy(ADS1220_t* dev);
 
 /**
  * @brief Reads the last conversion result (24-bit signed).
@@ -254,7 +254,7 @@ void ADS1220_destroy(ADS1220_t* dev);
  * @param[out] data Pointer to store the 24-bit result (sign-extended to 32-bit)
  * @return esp_err_t ESP_OK on success
  */
-esp_err_t ADS1220_read_data(ADS1220_t* dev, int32_t *data);
+esp_err_t ads1220_read_data(ADS1220_t* dev, int32_t *data);
 
 /**
  * @brief Performs a single-shot conversion and reads the result.
@@ -268,7 +268,7 @@ esp_err_t ADS1220_read_data(ADS1220_t* dev, int32_t *data);
  * @param timeout_ms Maximum time to wait for conversion in milliseconds
  * @return esp_err_t ESP_OK on success, ESP_ERR_TIMEOUT if DRDY doesn't go low within timeout
  */
-esp_err_t ADS1220_read_oneshot(ADS1220_t* dev, int32_t *data, uint32_t timeout_ms);
+esp_err_t ads1220_read_oneshot(ADS1220_t* dev, int32_t *data, uint32_t timeout_ms);
 
 /**
  * @brief Starts continuous data acquisition triggered by DRDY interrupt.
@@ -277,14 +277,14 @@ esp_err_t ADS1220_read_oneshot(ADS1220_t* dev, int32_t *data, uint32_t timeout_m
  * @param callback Function to call when new data is ready
  * @return esp_err_t ESP_OK on success
  */
-esp_err_t ADS1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback);
+esp_err_t ads1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback);
 
 /**
  * @brief Stops continuous data acquisition.
  * 
  * @param dev Pointer to ADS1220 device instance
  */
-void ADS1220_stop_continuous(ADS1220_t* dev);
+void ads1220_stop_continuous(ADS1220_t* dev);
 
 /**
  * @brief Reads all 4 configuration registers from the ADS1220.
@@ -293,7 +293,7 @@ void ADS1220_stop_continuous(ADS1220_t* dev);
  * @param[out] out Pointer to configuration structure to store the read values
  * @return esp_err_t ESP_OK on success, or SPI error code
  */
-esp_err_t ADS1220_read_config(ADS1220_t* dev, ADS1220_Config_t *out);
+esp_err_t ads1220_read_config(ADS1220_t* dev, ADS1220_Config_t *out);
 
 /**
  * @brief Gets a preconfigured profile for common use cases.
@@ -302,7 +302,7 @@ esp_err_t ADS1220_read_config(ADS1220_t* dev, ADS1220_Config_t *out);
  * @param[out] cfg Pointer to configuration structure to store the preset values
  * @return esp_err_t ESP_OK on success, ESP_ERR_INVALID_ARG if preset is invalid
  */
-esp_err_t ADS1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *cfg);
+esp_err_t ads1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *cfg);
 
 /**
  * @brief Writes all 4 configuration registers to the ADS1220.
@@ -311,7 +311,7 @@ esp_err_t ADS1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *c
  * @param cfg Pointer to configuration structure with values to write
  * @return esp_err_t ESP_OK on success, or SPI error code
  */
-esp_err_t ADS1220_write_config(ADS1220_t* dev, const ADS1220_Config_t *cfg);
+esp_err_t ads1220_write_config(ADS1220_t* dev, const ADS1220_Config_t *cfg);
 
 
 /**
@@ -319,28 +319,28 @@ esp_err_t ADS1220_write_config(ADS1220_t* dev, const ADS1220_Config_t *cfg);
  * @param dev Pointer to ADS1220 device instance
  * @return esp_err_t ESP_OK on success
  */
-esp_err_t ADS1220_reset(ADS1220_t* dev);
+esp_err_t ads1220_reset(ADS1220_t* dev);
 
 /**
  * @brief Powers down the ADS1220 to save power.
  * @param dev Pointer to ADS1220 device instance
  * @return esp_err_t ESP_OK on success
  */
-esp_err_t ADS1220_powerdown(ADS1220_t* dev);
+esp_err_t ads1220_powerdown(ADS1220_t* dev);
 
 /**
  * @brief Starts or restarts conversions.
  * @param dev Pointer to ADS1220 device instance
  * @return esp_err_t ESP_OK on success
  */
-esp_err_t ADS1220_start(ADS1220_t* dev);
+esp_err_t ads1220_start(ADS1220_t* dev);
 
 /**
  * @brief Synchronizes conversions (same as start).
  * @param dev Pointer to ADS1220 device instance
  * @return esp_err_t ESP_OK on success
  */
-esp_err_t ADS1220_sync(ADS1220_t* dev);
+esp_err_t ads1220_sync(ADS1220_t* dev);
 
 #ifdef __cplusplus
 } /* extern "C" */

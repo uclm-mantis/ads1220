@@ -130,17 +130,17 @@ void app_main(void) {
         .drdy_pin = 34,
         .spi_clock_speed_hz = 1000000,
     };
-    ADS1220_t* adc = ADS1220_create(&init_cfg);
+    ADS1220_t* adc = ads1220_create(&init_cfg);
 
     // Get preset configuration
     ADS1220_Config_t config;
-    ADS1220_get_preset_config(ADS1220_PRESET_LOAD_CELL, &config);
+    ads1220_get_preset_config(ADS1220_PRESET_LOAD_CELL, &config);
     
     // Write configuration
-    ADS1220_write_config(adc, &config);
+    ads1220_write_config(adc, &config);
     
     // Start continuous acquisition
-    ADS1220_start_continuous(adc, data_callback);
+    ads1220_start_continuous(adc, data_callback);
 }
 ```
 
@@ -162,28 +162,20 @@ void dataCallback(int32_t raw_data) {
 
 void setup() {
     Serial.begin(115200);
-    
-    // Initialize SPI
     SPI.begin();
     
-    // Create ADS1220 device
     ADS1220_init_config_t init_cfg = {
         .spi_host = SPI2_HOST,
         .cs_pin = CS_PIN,
         .drdy_pin = DRDY_PIN,
         .spi_clock_speed_hz = 1000000,
     };
-    adc = ADS1220_create(&init_cfg);
+    adc = ads1220_create(&init_cfg);
     
-    // Get preset configuration
     ADS1220_Config_t config;
-    ADS1220_get_preset_config(ADS1220_PRESET_LOAD_CELL, &config);
-    
-    // Write configuration
-    ADS1220_write_config(adc, &config);
-    
-    // Start continuous acquisition
-    ADS1220_start_continuous(adc, dataCallback);
+    ads1220_get_preset_config(ADS1220_PRESET_LOAD_CELL, &config);
+    ads1220_write_config(adc, &config);
+    ads1220_start_continuous(adc, dataCallback);
 }
 
 void loop() {
@@ -196,11 +188,11 @@ void loop() {
 
 ### Device Management
 
-#### `ADS1220_create()`
+#### `ads1220_create()`
 Creates and initializes an ADS1220 device instance.
 
 ```c
-ADS1220_t* ADS1220_create(const ADS1220_init_config_t* config);
+ADS1220_t* ads1220_create(const ADS1220_init_config_t* config);
 ```
 
 **Parameters:**
@@ -210,64 +202,64 @@ ADS1220_t* ADS1220_create(const ADS1220_init_config_t* config);
 
 ---
 
-#### `ADS1220_destroy()`
+#### `ads1220_destroy()`
 Destroys an ADS1220 device instance and frees resources.
 
 ```c
-void ADS1220_destroy(ADS1220_t* dev);
+void ads1220_destroy(ads1220_t* dev);
 ```
 
 ---
 
 ### Configuration
 
-#### `ADS1220_get_preset_config()`
+#### `ads1220_get_preset_config()`
 Gets a preconfigured profile for common use cases.
 
 ```c
-esp_err_t ADS1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *cfg);
+esp_err_t ads1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *cfg);
 ```
 
 **Presets:**
-- `ADS1220_PRESET_LOAD_CELL` - Load cell: AIN0-1, G=128, DR=2000, VREF external (REFP0/REFN0)
+- `ADS1220_PRESET_LOAD_CELL` - Load cell: AIN0-1, G=128, DR=600, VREF external (REFP0/REFN0)
 - `ADS1220_PRESET_FERNANDO` - Fernando's config: AIN0-1, G=64, DR=2000, VREF internal
 
 ---
 
-#### `ADS1220_write_config()`
+#### `ads1220_write_config()`
 Writes all 4 configuration registers to the ADS1220.
 
 ```c
-esp_err_t ADS1220_write_config(ADS1220_t* dev, const ADS1220_Config_t *cfg);
+esp_err_t ads1220_write_config(ADS1220_t* dev, const ADS1220_Config_t *cfg);
 ```
 
 ---
 
-#### `ADS1220_read_config()`
+#### `ads1220_read_config()`
 Reads all 4 configuration registers from the ADS1220.
 
 ```c
-esp_err_t ADS1220_read_config(ADS1220_t* dev, ADS1220_Config_t *out);
+esp_err_t ads1220_read_config(ADS1220_t* dev, ADS1220_Config_t *out);
 ```
 
 ---
 
 ### Data Acquisition
 
-#### `ADS1220_read_data()`
+#### `ads1220_read_data()`
 Reads the last conversion result (24-bit signed).
 
 ```c
-esp_err_t ADS1220_read_data(ADS1220_t* dev, int32_t *data);
+esp_err_t ads1220_read_data(ADS1220_t* dev, int32_t *data);
 ```
 
 ---
 
-#### `ADS1220_start_continuous()`
+#### `ads1220_start_continuous()`
 Starts continuous data acquisition triggered by DRDY interrupt.
 
 ```c
-esp_err_t ADS1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback);
+esp_err_t ads1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback);
 ```
 
 **Parameters:**
@@ -275,40 +267,40 @@ esp_err_t ADS1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callb
 
 ---
 
-#### `ADS1220_stop_continuous()`
+#### `ads1220_stop_continuous()`
 Stops continuous data acquisition.
 
 ```c
-void ADS1220_stop_continuous(ADS1220_t* dev);
+void ads1220_stop_continuous(ADS1220_t* dev);
 ```
 
 ---
 
 ### Commands
 
-#### `ADS1220_reset()`
+#### `ads1220_reset()`
 Resets the ADS1220 to default configuration.
 
 ```c
-esp_err_t ADS1220_reset(ADS1220_t* dev);
+esp_err_t ads1220_reset(ADS1220_t* dev);
 ```
 
 ---
 
-#### `ADS1220_start()`
+#### `ads1220_start()`
 Starts or restarts conversions.
 
 ```c
-esp_err_t ADS1220_start(ADS1220_t* dev);
+esp_err_t ads1220_start(ADS1220_t* dev);
 ```
 
 ---
 
-#### `ADS1220_powerdown()`
+#### `ads1220_powerdown()`
 Powers down the ADS1220 to save power.
 
 ```c
-esp_err_t ADS1220_powerdown(ADS1220_t* dev);
+esp_err_t ads1220_powerdown(ADS1220_t* dev);
 ```
 
 ---
@@ -353,7 +345,7 @@ ADS1220_Config_t config = {
     // ... other fields
 };
 
-ADS1220_write_config(adc, &config);
+ads1220_write_config(adc, &config);
 ```
 
 ### Multiple Devices
@@ -366,7 +358,7 @@ ADS1220_init_config_t cfg1 = {
     .drdy_pin = 34,
     .spi_clock_speed_hz = 1000000,
 };
-ADS1220_t* adc1 = ADS1220_create(&cfg1);
+ADS1220_t* adc1 = ads1220_create(&cfg1);
 
 // Device 2 (same SPI bus, different CS and DRDY)
 ADS1220_init_config_t cfg2 = {
@@ -375,7 +367,7 @@ ADS1220_init_config_t cfg2 = {
     .drdy_pin = 35,
     .spi_clock_speed_hz = 1000000,
 };
-ADS1220_t* adc2 = ADS1220_create(&cfg2);
+ADS1220_t* adc2 = ads1220_create(&cfg2);
 ```
 
 ## Troubleshooting

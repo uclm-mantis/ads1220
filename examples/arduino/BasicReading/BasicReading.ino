@@ -66,7 +66,7 @@ void setup() {
         .spi_clock_speed_hz = 1000000,  // 1 MHz
     };
     
-    adc = ADS1220_create(&init_cfg);
+    adc = ads1220_create(&init_cfg);
     if (!adc) {
         Serial.println("ERROR: Failed to create ADS1220 device");
         while(1) delay(1000);
@@ -74,20 +74,20 @@ void setup() {
     Serial.println("ADS1220 device created");
     
     // Reset device
-    ADS1220_reset(adc);
+    ads1220_reset(adc);
     delay(100);
     Serial.println("ADS1220 reset");
     
     // Get preset configuration for load cell
     ADS1220_Config_t config;
-    if (ADS1220_get_preset_config(ADS1220_PRESET_LOAD_CELL, &config) != ESP_OK) {
+    if (ads1220_get_preset_config(ADS1220_PRESET_LOAD_CELL, &config) != ESP_OK) {
         Serial.println("ERROR: Failed to get preset config");
         while(1) delay(1000);
     }
     Serial.println("Using LOAD_CELL preset configuration");
     
     // Write configuration to device
-    if (ADS1220_write_config(adc, &config) != ESP_OK) {
+    if (ads1220_write_config(adc, &config) != ESP_OK) {
         Serial.println("ERROR: Failed to write config");
         while(1) delay(1000);
     }
@@ -95,13 +95,13 @@ void setup() {
     
     // Verify configuration by reading back
     ADS1220_Config_t read_cfg;
-    if (ADS1220_read_config(adc, &read_cfg) == ESP_OK) {
+    if (ads1220_read_config(adc, &read_cfg) == ESP_OK) {
         Serial.printf("Configuration verified - Reg0: 0x%02X, Reg1: 0x%02X, Reg2: 0x%02X, Reg3: 0x%02X\n",
                      read_cfg.reg[0], read_cfg.reg[1], read_cfg.reg[2], read_cfg.reg[3]);
     }
     
     // Start continuous data acquisition
-    if (ADS1220_start_continuous(adc, dataReadyCallback) != ESP_OK) {
+    if (ads1220_start_continuous(adc, dataReadyCallback) != ESP_OK) {
         Serial.println("ERROR: Failed to start continuous mode");
         while(1) delay(1000);
     }

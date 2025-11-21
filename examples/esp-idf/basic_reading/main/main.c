@@ -46,7 +46,7 @@ void app_main(void) {
         .spi_clock_speed_hz = 1000000,  // 1 MHz
     };
     
-    ADS1220_t* adc = ADS1220_create(&init_cfg);
+    ADS1220_t* adc = ads1220_create(&init_cfg);
     if (!adc) {
         ESP_LOGE(TAG, "Failed to create ADS1220 device");
         return;
@@ -54,27 +54,27 @@ void app_main(void) {
     ESP_LOGI(TAG, "ADS1220 device created");
     
     // Reset device
-    ADS1220_reset(adc);
+    ads1220_reset(adc);
     vTaskDelay(pdMS_TO_TICKS(100));
     ESP_LOGI(TAG, "ADS1220 reset");
     
     // Get preset configuration for load cell
     ADS1220_Config_t config;
-    ESP_ERROR_CHECK(ADS1220_get_preset_config(ADS1220_PRESET_LOAD_CELL, &config));
+    ESP_ERROR_CHECK(ads1220_get_preset_config(ADS1220_PRESET_LOAD_CELL, &config));
     ESP_LOGI(TAG, "Using LOAD_CELL preset configuration");
     
     // Write configuration to device
-    ESP_ERROR_CHECK(ADS1220_write_config(adc, &config));
+    ESP_ERROR_CHECK(ads1220_write_config(adc, &config));
     ESP_LOGI(TAG, "Configuration written");
     
     // Verify configuration by reading back
     ADS1220_Config_t read_cfg;
-    ESP_ERROR_CHECK(ADS1220_read_config(adc, &read_cfg));
+    ESP_ERROR_CHECK(ads1220_read_config(adc, &read_cfg));
     ESP_LOGI(TAG, "Configuration verified - Reg0: 0x%02X, Reg1: 0x%02X, Reg2: 0x%02X, Reg3: 0x%02X",
              read_cfg.reg[0], read_cfg.reg[1], read_cfg.reg[2], read_cfg.reg[3]);
     
     // Start continuous data acquisition
-    ESP_ERROR_CHECK(ADS1220_start_continuous(adc, data_ready_callback));
+    ESP_ERROR_CHECK(ads1220_start_continuous(adc, data_ready_callback));
     ESP_LOGI(TAG, "Continuous acquisition started");
     
     // Main loop - data is handled in callback
@@ -84,6 +84,6 @@ void app_main(void) {
     }
     
     // Cleanup (never reached in this example)
-    ADS1220_stop_continuous(adc);
-    ADS1220_destroy(adc);
+    ads1220_stop_continuous(adc);
+    ads1220_destroy(adc);
 }
