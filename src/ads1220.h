@@ -310,7 +310,7 @@ esp_err_t ads1220_get_preset_config(ADS1220_Preset_t preset, ADS1220_Config_t *c
  * @param preset The preset profile to retrieve
  * @return esp_err_t ESP_OK on success, ESP_ERR_INVALID_ARG if preset is invalid
  */
-esp_err_t ads1220_set_preset_config(ADS1220_Preset_t preset);
+esp_err_t ads1220_set_preset_config(ADS1220_t* dev, ADS1220_Preset_t preset);
 
 /**
  * @brief Writes all 4 configuration registers to the ADS1220.
