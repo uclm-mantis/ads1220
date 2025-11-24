@@ -226,7 +226,7 @@ typedef struct ADS1220_t ADS1220_t;
  * @brief Callback function type for continuous data acquisition
  * @param raw_data The 24-bit ADC result (sign-extended to 32-bit)
  */
-typedef void (*ads1220_data_callback_t)(int32_t raw_data);
+typedef void (*ads1220_data_callback_t)(int32_t raw_data, void* arg);
 
 /**
  * @brief Creates and initializes an ADS1220 device instance.
@@ -275,9 +275,10 @@ esp_err_t ads1220_read_oneshot(ADS1220_t* dev, int32_t *data, uint32_t timeout_m
  * 
  * @param dev Pointer to ADS1220 device instance
  * @param callback Function to call when new data is ready
+ * @param callback_arg User-defined argument to pass to the callback
  * @return esp_err_t ESP_OK on success
  */
-esp_err_t ads1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback);
+esp_err_t ads1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback, void* callback_arg);
 
 /**
  * @brief Stops continuous data acquisition.
