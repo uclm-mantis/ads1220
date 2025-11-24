@@ -265,6 +265,7 @@ void ads1220_stop_continuous(ADS1220_t* dev) {
     }
     
     dev->callback = NULL;
+    dev->callback_arg = NULL;
 }
 
 /**
