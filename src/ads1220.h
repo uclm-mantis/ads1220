@@ -276,9 +276,10 @@ esp_err_t ads1220_read_oneshot(ADS1220_t* dev, int32_t *data, uint32_t timeout_m
  * @param dev Pointer to ADS1220 device instance
  * @param callback Function to call when new data is ready
  * @param callback_arg User-defined argument to pass to the callback
+ * @param decimation Number of DRDY interrupts to skip between callbacks (1 = every sample)
  * @return esp_err_t ESP_OK on success
  */
-esp_err_t ads1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback, void* callback_arg);
+esp_err_t ads1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback, void* callback_arg, unsigned decimation);
 
 /**
  * @brief Stops continuous data acquisition.

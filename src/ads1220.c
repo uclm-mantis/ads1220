@@ -54,6 +54,7 @@ struct ADS1220_t {
     TaskHandle_t driver_task;
     ads1220_data_callback_t callback;
     void* callback_arg;
+    unsigned decimation;
 };
 
 static inline int ads_data_ready(gpio_num_t pin){
@@ -85,14 +86,16 @@ static int32_t ads_read_raw_internal(spi_device_handle_t dev) {
 }
 
 static void ads1220_driver_task(void *arg) {
+    static unsigned counter = 0;
     ADS1220_t* dev = (ADS1220_t*)arg;
-    while (1) {
-        if (ulTaskNotifyTake(pdTRUE, portMAX_DELAY)) {
+    for (;;) {
+        if (counter == 0 && ulTaskNotifyTake(pdTRUE, portMAX_DELAY)) {
             int32_t raw = ads_read_raw_internal(dev->spi_dev);
             if (dev->callback) {
                 dev->callback(raw, dev->callback_arg);
             }
         }
+        counter = (counter + 1) % dev->decimation;
     }
 }
 
@@ -231,11 +234,12 @@ esp_err_t ads1220_write_config(ADS1220_t* dev, const ADS1220_Config_t *cfg) {
     return spi_device_transmit(dev->spi_dev, &t);
 }
 
-esp_err_t ads1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback, void* callback_arg) {
+esp_err_t ads1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback, void* callback_arg, unsigned decimation) {
     if (!dev || !callback) return ESP_ERR_INVALID_ARG;
     
     dev->callback = callback;
     dev->callback_arg = callback_arg;
+    dev->decimation = decimation;
 
     if (!dev->driver_task) {
         xTaskCreate(ads1220_driver_task, "ads1220", 4096, dev, configMAX_PRIORITIES - 1, &dev->driver_task);
