@@ -392,7 +392,7 @@ ADS1220_t* adc2 = ads1220_create(&cfg2);
 
 MIT License - see [LICENSE](LICENSE) file for details
 
-## Collaborators:
+## Contributors
 
 - Francisco Moya Fernández
 - Fernando Castillo García
