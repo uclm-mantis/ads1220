@@ -245,11 +245,7 @@ esp_err_t ads1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callb
         xTaskCreate(ads1220_driver_task, "ads1220", 4096, dev, configMAX_PRIORITIES - 1, &dev->driver_task);
     }
 
-    // Install ISR service if not already installed (might fail if already installed, ignore error)
-    gpio_install_isr_service(0);
     gpio_isr_handler_add(dev->drdy_pin, ads1220_drdy_isr, dev);
-    
-    // Enable interrupt
     gpio_intr_enable(dev->drdy_pin);
 
     // Send START command
