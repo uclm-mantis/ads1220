@@ -86,10 +86,11 @@ static int32_t ads_read_raw_internal(spi_device_handle_t dev) {
 }
 
 static void ads1220_driver_task(void *arg) {
-    static unsigned counter = 0;
     ADS1220_t* dev = (ADS1220_t*)arg;
+    unsigned counter = 0;
     for (;;) {
-        if (counter == 0 && ulTaskNotifyTake(pdTRUE, portMAX_DELAY)) {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        if (counter == 0) {
             int32_t raw = ads_read_raw_internal(dev->spi_dev);
             if (dev->callback) {
                 dev->callback(raw, dev->callback_arg);
@@ -132,8 +133,9 @@ ADS1220_t* ads1220_create(const ADS1220_init_config_t* config) {
     // Initialize DRDY GPIO
     gpio_config_t io = { 
         .pin_bit_mask = 1ULL << config->drdy_pin, 
-        .mode = GPIO_MODE_INPUT, 
+        .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_ENABLE,
+        .pull_down_en = GPIO_PULLUP_DISABLE,
         .intr_type = GPIO_INTR_NEGEDGE
     };
     gpio_config(&io);
@@ -234,21 +236,42 @@ esp_err_t ads1220_write_config(ADS1220_t* dev, const ADS1220_Config_t *cfg) {
     return spi_device_transmit(dev->spi_dev, &t);
 }
 
-esp_err_t ads1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback, void* callback_arg, unsigned decimation) {
+esp_err_t ads1220_start_continuous(ADS1220_t* dev,
+                                   ads1220_data_callback_t callback,
+                                   void* callback_arg,
+                                   unsigned decimation)
+{
     if (!dev || !callback) return ESP_ERR_INVALID_ARG;
     
-    dev->callback = callback;
+    dev->callback     = callback;
     dev->callback_arg = callback_arg;
-    dev->decimation = decimation;
+    dev->decimation   = decimation ? decimation : 1;   // por si acaso
 
     if (!dev->driver_task) {
-        xTaskCreate(ads1220_driver_task, "ads1220", 4096, dev, configMAX_PRIORITIES - 1, &dev->driver_task);
+        BaseType_t res = xTaskCreate(
+            ads1220_driver_task,
+            "ads1220",
+            4096,               // puedes bajar a 3072 si vas justo
+            dev,
+            configMAX_PRIORITIES - 1,
+            &dev->driver_task
+        );
+        if (res != pdPASS) {
+            ESP_LOGE(TAG, "Failed to create ads1220_driver_task");
+            dev->driver_task = NULL;
+            dev->callback = NULL;
+            dev->callback_arg = NULL;
+            return ESP_FAIL;
+        }
     }
 
-    gpio_isr_handler_add(dev->drdy_pin, ads1220_drdy_isr, dev);
-    gpio_intr_enable(dev->drdy_pin);
+    esp_err_t err = gpio_isr_handler_add(dev->drdy_pin, ads1220_drdy_isr, dev);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "gpio_isr_handler_add failed: %s", esp_err_to_name(err));
+        return err;
+    }
+    ESP_ERROR_CHECK(gpio_intr_enable(dev->drdy_pin));
 
-    // Send START command
     return ads1220_start(dev);
 }
 
