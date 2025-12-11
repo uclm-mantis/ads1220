@@ -1,9 +1,11 @@
 #include "ads1220.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
+#include "esp_rom_sys.h"
 
 static const char *TAG = "ADS1220";
 
@@ -55,6 +57,8 @@ struct ADS1220_t {
     ads1220_data_callback_t callback;
     void* callback_arg;
     unsigned decimation;
+    volatile uint32_t drdy_irq_count;
+    bool drdy_seen_high;
 };
 
 static inline int ads_data_ready(gpio_num_t pin){
@@ -63,14 +67,19 @@ static inline int ads_data_ready(gpio_num_t pin){
 
 static void IRAM_ATTR ads1220_drdy_isr(void *arg) {
     ADS1220_t* dev = (ADS1220_t*)arg;
+    if (!dev) {
+        return;
+    }
+    dev->drdy_irq_count++; // diagnostics
     BaseType_t high_task_wakeup = pdFALSE;
-    if (dev && dev->driver_task) {
+    if (dev->driver_task) {
         vTaskNotifyGiveFromISR(dev->driver_task, &high_task_wakeup);
     }
     if (high_task_wakeup) {
         portYIELD_FROM_ISR();
     }
 }
+
 
 static int32_t ads_read_raw_internal(spi_device_handle_t dev) {
     uint8_t tx[4] = { ADS1220_RDATA.u8, 0, 0, 0 };
@@ -130,7 +139,6 @@ ADS1220_t* ads1220_create(const ADS1220_init_config_t* config) {
         return NULL;
     }
     
-    // Initialize DRDY GPIO
     gpio_config_t io = { 
         .pin_bit_mask = 1ULL << config->drdy_pin, 
         .mode = GPIO_MODE_INPUT,
@@ -139,7 +147,18 @@ ADS1220_t* ads1220_create(const ADS1220_init_config_t* config) {
         .intr_type = GPIO_INTR_NEGEDGE
     };
     gpio_config(&io);
-    
+
+    // --- Comprobación rápida de línea DRDY tras configurar el pin ---
+    // En reposo (sin conversión en curso y en modo single-shot) debería estar en alto.
+    int level = gpio_get_level(config->drdy_pin);
+    if (level == 1) {
+        dev->drdy_seen_high = true;
+    } else {
+        ESP_LOGW(TAG,
+                "DRDY pin %d is LOW after configuration (should be HIGH). "
+                "Check wiring / operation mode.",
+                config->drdy_pin);
+    }
     return dev;
 }
 
@@ -303,3 +322,80 @@ ADS1220_CMD_FUNC(reset, ADS1220_RESET)
 ADS1220_CMD_FUNC(powerdown, ADS1220_POWERDOWN)
 ADS1220_CMD_FUNC(start, ADS1220_STARTSYNC)
 ADS1220_CMD_FUNC(sync, ADS1220_STARTSYNC)
+
+
+esp_err_t ads1220_check_drdy_idle(ADS1220_t* dev)
+{
+    if (!dev) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    int level = gpio_get_level(dev->drdy_pin);
+    if (level == 1) {
+        dev->drdy_seen_high = true;
+        ESP_LOGI(TAG, "DRDY idle check: pin %d is HIGH", dev->drdy_pin);
+        return ESP_OK;
+    } else {
+        ESP_LOGW(TAG, "DRDY idle check: pin %d is LOW (should be HIGH in idle).",
+                 dev->drdy_pin);
+        return ESP_FAIL;
+    }
+}
+
+/**
+ * @brief Pequeño auto-test del ADS1220:
+ *        - Envía RESET
+ *        - Lee los 4 registros de configuración
+ *        - Comprueba si están todos a 0xFF (bus flotante / CS mal / MISO mal)
+ */
+esp_err_t ads1220_self_test(ADS1220_t* dev)
+{
+    if (!dev) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    // Poner el dispositivo en estado conocido
+    esp_err_t err = ads1220_reset(dev);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "self-test: RESET falló: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    // Espera breve a que termine el reset interno
+    esp_rom_delay_us(1000);
+
+    ADS1220_Config_t cfg = {0};
+    err = ads1220_read_config(dev, &cfg);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "self-test: read_config falló: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    ESP_LOGI(TAG,
+             "self-test: config tras RESET -> REG0=0x%02X REG1=0x%02X REG2=0x%02X REG3=0x%02X",
+             cfg.reg[0], cfg.reg[1], cfg.reg[2], cfg.reg[3]);
+
+    // 0xFF en todos los registros suele indicar bus flotante o CS/MISO mal cableado
+    if (cfg.reg[0] == 0xFF && cfg.reg[1] == 0xFF &&
+        cfg.reg[2] == 0xFF && cfg.reg[3] == 0xFF) {
+        ESP_LOGE(TAG,
+                 "self-test: todos los registros de config valen 0xFF. "
+                 "Probable problema de wiring (CS, MISO, alimentación) o dispositivo ausente.");
+        return ESP_FAIL;
+    }
+
+    // Si quisieras, aquí podrías comprobar contra los valores por defecto del datasheet
+    return ESP_OK;
+}
+
+uint32_t ads1220_get_drdy_irq_count(ADS1220_t* dev)
+{
+    if (!dev) return 0;
+    return dev->drdy_irq_count;
+}
+
+void ads1220_clear_drdy_irq_count(ADS1220_t* dev)
+{
+    if (!dev) return;
+    dev->drdy_irq_count = 0;
+}

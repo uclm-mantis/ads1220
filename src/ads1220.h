@@ -351,6 +351,37 @@ esp_err_t ads1220_start(ADS1220_t* dev);
  */
 esp_err_t ads1220_sync(ADS1220_t* dev);
 
+
+/**
+ * @brief Comprueba el nivel de la línea DRDY en reposo.
+ *
+ * Lee el pin configurado como DRDY. Si está en HIGH, devuelve ESP_OK.
+ * Si está en LOW, devuelve ESP_FAIL (indicio de que el dispositivo
+ * está convirtiendo continuamente o de que hay un problema de wiring).
+ */
+esp_err_t ads1220_check_drdy_idle(ADS1220_t* dev);
+
+/**
+ * @brief Auto-test básico del ADS1220.
+ *
+ * - Envía un comando RESET.
+ * - Lee los 4 registros de configuración.
+ * - Si todos valen 0xFF, se considera error (bus flotante, CS/MISO mal, etc.).
+ *
+ * @return ESP_OK si al menos no se obtienen todos 0xFF, ESP_FAIL en caso contrario.
+ */
+esp_err_t ads1220_self_test(ADS1220_t* dev);
+
+/**
+ * @brief Devuelve el número de interrupciones DRDY atendidas desde el último reset.
+ */
+uint32_t ads1220_get_drdy_irq_count(ADS1220_t* dev);
+
+/**
+ * @brief Pone a cero el contador de interrupciones DRDY.
+ */
+void ads1220_clear_drdy_irq_count(ADS1220_t* dev);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
