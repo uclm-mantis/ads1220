@@ -127,7 +127,12 @@ ADS1220_t* ads1220_create(const ADS1220_init_config_t* config) {
     // Add device to SPI bus (bus must be already initialized)
     spi_device_interface_config_t dev_config = {
         .clock_speed_hz = config->spi_clock_speed_hz,
-        .mode = 1,  // SPI mode 1 (CPOL=0, CPHA=1)
+        // NOTE:
+        // ADS1220 requires SPI MODE 1 (CPOL=0, CPHA=1) per datasheet.
+        // However, ESP32/S3 samples MISO too early in MODE 1, causing a 1-bit shift.
+        // In ESP-IDF, MODE 0 provides the correct sampling edge for ADS1220.
+        // Do NOT change this unless using logic analyzer to verify timing.
+        .mode = 0,
         .spics_io_num = config->cs_pin,
         .queue_size = 2
     };
@@ -232,14 +237,19 @@ esp_err_t ads1220_set_preset_config(ADS1220_t* dev, ADS1220_Preset_t preset) {
 esp_err_t ads1220_read_config(ADS1220_t* dev, ADS1220_Config_t *out) {
     if (!dev || !out) return ESP_ERR_INVALID_ARG;
     
-    uint8_t cmd = ADS1220_RREG(ADS1220_REG0, 4).u8;
+    union {
+        uint8_t b[8];
+        uint32_t w[2];
+    } rx;
     spi_transaction_t t = { 
         .length = 40, 
-        .tx_buffer = &cmd,
-        .rxlength = 32,
-        .rx_buffer = out->reg
+        .tx_buffer = (uint8_t[]){ ADS1220_RREG(ADS1220_REG0, 4).u8, 0, 0, 0, 0 },
+        .rx_buffer = rx.b+3,
     };
-    return spi_device_transmit(dev->spi_dev, &t);
+    esp_err_t err = spi_device_transmit(dev->spi_dev, &t);
+    if (err != ESP_OK) return err;
+    out->w = rx.w[1];
+    return ESP_OK;
 }
 
 esp_err_t ads1220_write_config(ADS1220_t* dev, const ADS1220_Config_t *cfg) {
