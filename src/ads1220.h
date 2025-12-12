@@ -228,7 +228,7 @@ typedef struct ADS1220_t ADS1220_t;
  * @brief Callback function type for continuous data acquisition
  * @param raw_data The 24-bit ADC result (sign-extended to 32-bit)
  */
-typedef bool (*ads1220_data_callback_t)(int32_t raw_data, void* arg);
+typedef void (*ads1220_data_callback_t)(int32_t raw_data, void* arg);
 
 /**
  * @brief Creates and initializes an ADS1220 device instance.
