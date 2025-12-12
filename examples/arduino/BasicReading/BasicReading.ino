@@ -25,7 +25,7 @@
 ADS1220_t* adc = NULL;
 
 // Data callback function
-void dataReadyCallback(int32_t raw_data) {
+bool dataReadyCallback(int32_t raw_data) {
     // Convert to voltage (example: 2.048V reference, gain 128)
     float voltage = (raw_data * 2.048f) / (8388608.0f * 128.0f);
     
@@ -34,6 +34,7 @@ void dataReadyCallback(int32_t raw_data) {
     Serial.print(", Voltage: ");
     Serial.print(voltage, 6);
     Serial.println(" V");
+    return true;
 }
 
 void setup() {

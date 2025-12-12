@@ -101,9 +101,8 @@ static void ads1220_driver_task(void *arg) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         if (counter == 0) {
             int32_t raw = ads_read_raw_internal(dev->spi_dev);
-            if (dev->callback) {
-                dev->callback(raw, dev->callback_arg);
-            }
+            if (dev->callback && !dev->callback(raw, dev->callback_arg)) 
+                break;
         }
         counter = (counter + 1) % dev->decimation;
     }

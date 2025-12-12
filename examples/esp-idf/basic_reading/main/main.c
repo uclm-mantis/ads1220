@@ -16,10 +16,11 @@ static const char *TAG = "ADS1220_EXAMPLE";
 #define PIN_DRDY 34
 
 // Data callback function
-void data_ready_callback(int32_t raw_data) {
+bool data_ready_callback(int32_t raw_data) {
     // Convert to voltage (example: 2.048V reference, gain 128)
     float voltage = (raw_data * 2.048f) / (8388608.0f * 128.0f);
     ESP_LOGI(TAG, "Raw: %ld, Voltage: %.6f V", raw_data, voltage);
+    return true;
 }
 
 void app_main(void) {
