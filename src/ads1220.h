@@ -284,7 +284,7 @@ esp_err_t ads1220_read_oneshot(ADS1220_t* dev, int32_t *data, uint32_t timeout_m
 esp_err_t ads1220_start_continuous(ADS1220_t* dev, ads1220_data_callback_t callback, void* callback_arg, unsigned decimation);
 
 /**
- * @brief Stops continuous data acquisition.
+ * @brief Stops continuous data acquisition. Should not be called from callback.
  * 
  * @param dev Pointer to ADS1220 device instance
  */
