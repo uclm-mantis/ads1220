@@ -151,18 +151,6 @@ ADS1220_t* ads1220_create(const ADS1220_init_config_t* config) {
         .intr_type = GPIO_INTR_NEGEDGE
     };
     gpio_config(&io);
-
-    // --- Comprobación rápida de línea DRDY tras configurar el pin ---
-    // En reposo (sin conversión en curso y en modo single-shot) debería estar en alto.
-    int level = gpio_get_level(config->drdy_pin);
-    if (level == 1) {
-        dev->drdy_seen_high = true;
-    } else {
-        ESP_LOGW(TAG,
-                "DRDY pin %d is LOW after configuration (should be HIGH). "
-                "Check wiring / operation mode.",
-                config->drdy_pin);
-    }
     return dev;
 }
 
