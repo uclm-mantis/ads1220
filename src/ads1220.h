@@ -58,6 +58,7 @@ static inline ADS1220Command_t ADS1220_WREG(ADS1220_Reg_t reg, uint8_t count) {
 
 /* --- Global Configuration --- */
 typedef union {
+    uint32_t w;
     uint8_t reg[4];
     struct __attribute__((packed)) {
         /* Register 0 */
