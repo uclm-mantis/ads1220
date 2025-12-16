@@ -355,15 +355,6 @@ esp_err_t ads1220_sync(ADS1220_t* dev);
 
 
 /**
- * @brief Comprueba el nivel de la línea DRDY en reposo.
- *
- * Lee el pin configurado como DRDY. Si está en HIGH, devuelve ESP_OK.
- * Si está en LOW, devuelve ESP_FAIL (indicio de que el dispositivo
- * está convirtiendo continuamente o de que hay un problema de wiring).
- */
-esp_err_t ads1220_check_drdy_idle(ADS1220_t* dev);
-
-/**
  * @brief Auto-test básico del ADS1220.
  *
  * - Envía un comando RESET.

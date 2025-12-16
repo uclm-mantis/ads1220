@@ -321,24 +321,6 @@ ADS1220_CMD_FUNC(start, ADS1220_STARTSYNC)
 ADS1220_CMD_FUNC(sync, ADS1220_STARTSYNC)
 
 
-esp_err_t ads1220_check_drdy_idle(ADS1220_t* dev)
-{
-    if (!dev) {
-        return ESP_ERR_INVALID_ARG;
-    }
-
-    int level = gpio_get_level(dev->drdy_pin);
-    if (level == 1) {
-        dev->drdy_seen_high = true;
-        ESP_LOGI(TAG, "DRDY idle check: pin %d is HIGH", dev->drdy_pin);
-        return ESP_OK;
-    } else {
-        ESP_LOGW(TAG, "DRDY idle check: pin %d is LOW (should be HIGH in idle).",
-                 dev->drdy_pin);
-        return ESP_FAIL;
-    }
-}
-
 /**
  * @brief Pequeño auto-test del ADS1220:
  *        - Envía RESET
